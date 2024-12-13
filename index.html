@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animated Gradient Text</title>
+    <title>Centered Animated Gradient Text</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -72,8 +72,8 @@
     </style>
 </head>
 <body>
-    <h1>Animated Gradient Text Generator</h1>
-    <textarea id="text-input" placeholder="Paste your text here...">This is a sample paragraph text. It should wrap properly and respect the padding, letter spacing, and line spacing settings. Feel free to modify this text and see how it renders on the animated gradient background.</textarea>
+    <h1>Centered Animated Gradient Text Generator</h1>
+    <textarea id="text-input" placeholder="Paste your text here...">This is a sample centered text. It will be rendered in the middle of the animated gradient background.</textarea>
     <canvas id="gradient-canvas" width="800" height="400"></canvas>
 
     <div class="controls">
@@ -96,10 +96,6 @@
         <div class="control-group">
             <label for="font-size">Font Size</label>
             <input type="range" id="font-size" min="12" max="72" value="24">
-        </div>
-        <div class="control-group">
-            <label for="padding">Padding</label>
-            <input type="range" id="padding" min="0" max="50" value="20">
         </div>
         <div class="control-group">
             <label for="line-spacing">Line Spacing</label>
@@ -133,7 +129,6 @@
         const speedInput = document.getElementById('speed');
         const densityInput = document.getElementById('density');
         const fontSizeInput = document.getElementById('font-size');
-        const paddingInput = document.getElementById('padding');
         const lineSpacingInput = document.getElementById('line-spacing');
         const letterSpacingInput = document.getElementById('letter-spacing');
         const shadowBlurInput = document.getElementById('shadow-blur');
@@ -170,7 +165,6 @@
 
             if (textInput.value.trim()) {
                 const fontSize = parseInt(fontSizeInput.value);
-                const padding = parseInt(paddingInput.value);
                 const lineSpacing = parseFloat(lineSpacingInput.value);
                 const letterSpacing = parseFloat(letterSpacingInput.value);
                 const shadowBlur = parseInt(shadowBlurInput.value);
@@ -178,33 +172,26 @@
 
                 ctx.font = `${fontSize}px Arial`;
                 ctx.fillStyle = 'white';
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'top';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 
                 ctx.shadowColor = shadowColor;
                 ctx.shadowBlur = shadowBlur;
                 ctx.shadowOffsetX = 2;
                 ctx.shadowOffsetY = 2;
 
-                const maxWidth = canvas.width - 2 * padding;
-                const words = textInput.value.split(' ');
-                let line = '';
-                let y = padding;
+                const lines = textInput.value.split('\n');
+                const totalHeight = lines.length * fontSize * lineSpacing;
+                let y = canvas.height / 2 - totalHeight / 2 + fontSize / 2;
 
-                for (let i = 0; i < words.length; i++) {
-                    let testLine = line + words[i] + ' ';
-                    let metrics = ctx.measureText(testLine);
-                    let testWidth = metrics.width + (testLine.length - 1) * letterSpacing;
-
-                    if (testWidth > maxWidth && i > 0) {
-                        drawTextLine(line, padding, y, letterSpacing);
-                        line = words[i] + ' ';
-                        y += fontSize * lineSpacing;
-                    } else {
-                        line = testLine;
-                    }
-                }
-                drawTextLine(line, padding, y, letterSpacing);
+                lines.forEach(line => {
+                    let x = canvas.width / 2;
+                    [...line].forEach((char, index) => {
+                        ctx.fillText(char, x, y);
+                        x += ctx.measureText(char).width + letterSpacing;
+                    });
+                    y += fontSize * lineSpacing;
+                });
 
                 // Reset shadow for next frame
                 ctx.shadowColor = 'transparent';
@@ -214,13 +201,6 @@
             }
 
             frame += parseInt(speedInput.value) / 100;
-        }
-
-        function drawTextLine(text, x, y, letterSpacing) {
-            for (let i = 0; i < text.length; i++) {
-                ctx.fillText(text[i], x, y);
-                x += ctx.measureText(text[i]).width + letterSpacing;
-            }
         }
 
         function animate() {
