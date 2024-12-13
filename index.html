@@ -24,18 +24,20 @@
             flex-wrap: wrap;
             gap: 20px;
             justify-content: center;
+            max-width: 800px;
         }
         .control-group {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 200px;
+            width: 180px;
         }
         label {
             margin-bottom: 5px;
+            font-size: 14px;
         }
         textarea {
-            width: 400px;
+            width: 800px;
             height: 100px;
             margin-bottom: 20px;
             padding: 10px;
@@ -59,11 +61,19 @@
         input[type="range"] {
             width: 100%;
         }
+        input[type="color"] {
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
     <h1>Animated Gradient Text Generator</h1>
-    <textarea id="text-input" placeholder="Paste your text here..."></textarea>
+    <textarea id="text-input" placeholder="Paste your text here...">This is a sample paragraph text. It should wrap properly and respect the padding, letter spacing, and line spacing settings. Feel free to modify this text and see how it renders on the animated gradient background.</textarea>
     <canvas id="gradient-canvas" width="800" height="400"></canvas>
 
     <div class="controls">
@@ -85,7 +95,19 @@
         </div>
         <div class="control-group">
             <label for="font-size">Font Size</label>
-            <input type="range" id="font-size" min="12" max="72" value="48">
+            <input type="range" id="font-size" min="12" max="72" value="24">
+        </div>
+        <div class="control-group">
+            <label for="padding">Padding</label>
+            <input type="range" id="padding" min="0" max="50" value="20">
+        </div>
+        <div class="control-group">
+            <label for="line-spacing">Line Spacing</label>
+            <input type="range" id="line-spacing" min="1" max="3" step="0.1" value="1.5">
+        </div>
+        <div class="control-group">
+            <label for="letter-spacing">Letter Spacing</label>
+            <input type="range" id="letter-spacing" min="0" max="10" step="0.1" value="0">
         </div>
         <div class="control-group">
             <label for="shadow-blur">Shadow Blur</label>
@@ -111,6 +133,9 @@
         const speedInput = document.getElementById('speed');
         const densityInput = document.getElementById('density');
         const fontSizeInput = document.getElementById('font-size');
+        const paddingInput = document.getElementById('padding');
+        const lineSpacingInput = document.getElementById('line-spacing');
+        const letterSpacingInput = document.getElementById('letter-spacing');
         const shadowBlurInput = document.getElementById('shadow-blur');
         const shadowColorInput = document.getElementById('shadow-color');
         
@@ -144,22 +169,43 @@
             }
 
             if (textInput.value.trim()) {
-                const fontSize = fontSizeInput.value;
-                const shadowBlur = shadowBlurInput.value;
+                const fontSize = parseInt(fontSizeInput.value);
+                const padding = parseInt(paddingInput.value);
+                const lineSpacing = parseFloat(lineSpacingInput.value);
+                const letterSpacing = parseFloat(letterSpacingInput.value);
+                const shadowBlur = parseInt(shadowBlurInput.value);
                 const shadowColor = shadowColorInput.value;
 
                 ctx.font = `${fontSize}px Arial`;
                 ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
                 
                 ctx.shadowColor = shadowColor;
                 ctx.shadowBlur = shadowBlur;
                 ctx.shadowOffsetX = 2;
                 ctx.shadowOffsetY = 2;
 
-                ctx.fillText(textInput.value.trim(), canvas.width / 2, canvas.height / 2);
-                
+                const maxWidth = canvas.width - 2 * padding;
+                const words = textInput.value.split(' ');
+                let line = '';
+                let y = padding;
+
+                for (let i = 0; i < words.length; i++) {
+                    let testLine = line + words[i] + ' ';
+                    let metrics = ctx.measureText(testLine);
+                    let testWidth = metrics.width + (testLine.length - 1) * letterSpacing;
+
+                    if (testWidth > maxWidth && i > 0) {
+                        drawTextLine(line, padding, y, letterSpacing);
+                        line = words[i] + ' ';
+                        y += fontSize * lineSpacing;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                drawTextLine(line, padding, y, letterSpacing);
+
                 // Reset shadow for next frame
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
@@ -168,6 +214,13 @@
             }
 
             frame += parseInt(speedInput.value) / 100;
+        }
+
+        function drawTextLine(text, x, y, letterSpacing) {
+            for (let i = 0; i < text.length; i++) {
+                ctx.fillText(text[i], x, y);
+                x += ctx.measureText(text[i]).width + letterSpacing;
+            }
         }
 
         function animate() {
@@ -200,6 +253,14 @@
 
             gif.render();
         });
+
+        // Update animation on input change
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', drawGradient);
+        });
+
+        textInput.addEventListener('input', drawGradient);
     </script>
 </body>
 </html>
