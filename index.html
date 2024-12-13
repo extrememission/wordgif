@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centered Animated Gradient Text</title>
+    <title>Customizable Gradient Text</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@100..900&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto Flex', sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #f4f4f4;
@@ -72,30 +73,18 @@
     </style>
 </head>
 <body>
-    <h1>Centered Animated Gradient Text Generator</h1>
-    <textarea id="text-input" placeholder="Paste your text here...">This is a sample centered text. It will be rendered in the middle of the animated gradient background.</textarea>
+    <h1>Customizable Gradient Text Generator</h1>
+    <textarea id="text-input" placeholder="Paste your text here...">This is a sample centered text. It will be rendered on the customizable gradient background.</textarea>
     <canvas id="gradient-canvas" width="800" height="400"></canvas>
 
     <div class="controls">
         <div class="control-group">
-            <label for="color1">Gradient Color 1</label>
-            <input type="color" id="color1" value="#ff6b6b">
-        </div>
-        <div class="control-group">
-            <label for="color2">Gradient Color 2</label>
-            <input type="color" id="color2" value="#4ecdc4">
-        </div>
-        <div class="control-group">
-            <label for="speed">Animation Speed</label>
-            <input type="range" id="speed" min="1" max="100" value="50">
-        </div>
-        <div class="control-group">
-            <label for="density">Mesh Density</label>
-            <input type="range" id="density" min="5" max="50" value="20">
-        </div>
-        <div class="control-group">
             <label for="font-size">Font Size</label>
             <input type="range" id="font-size" min="12" max="72" value="24">
+        </div>
+        <div class="control-group">
+            <label for="font-weight">Font Weight</label>
+            <input type="range" id="font-weight" min="100" max="900" value="400" step="100">
         </div>
         <div class="control-group">
             <label for="line-spacing">Line Spacing</label>
@@ -115,6 +104,41 @@
         </div>
     </div>
 
+    <div class="controls">
+        <div class="control-group">
+            <label for="bg-color">Background Color</label>
+            <input type="color" id="bg-color" value="#ff0000">
+        </div>
+        <div class="control-group">
+            <label for="gradient1-color">Gradient 1 Color</label>
+            <input type="color" id="gradient1-color" value="#ffb199">
+        </div>
+        <div class="control-group">
+            <label for="gradient2-color">Gradient 2 Color</label>
+            <input type="color" id="gradient2-color" value="#8fd3f4">
+        </div>
+        <div class="control-group">
+            <label for="gradient3-color">Gradient 3 Color</label>
+            <input type="color" id="gradient3-color" value="#ffd1dc">
+        </div>
+        <div class="control-group">
+            <label for="gradient4-color">Gradient 4 Color</label>
+            <input type="color" id="gradient4-color" value="#ff9cce">
+        </div>
+        <div class="control-group">
+            <label for="gradient5-color">Gradient 5 Color</label>
+            <input type="color" id="gradient5-color" value="#ffc3a0">
+        </div>
+        <div class="control-group">
+            <label for="gradient6-color">Gradient 6 Color</label>
+            <input type="color" id="gradient6-color" value="#b19cd9">
+        </div>
+        <div class="control-group">
+            <label for="gradient7-color">Gradient 7 Color</label>
+            <input type="color" id="gradient7-color" value="#ff9cce">
+        </div>
+    </div>
+
     <button id="save-gif">Save as Animated GIF</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
@@ -124,53 +148,66 @@
         const ctx = canvas.getContext('2d');
         
         const textInput = document.getElementById('text-input');
-        const color1Input = document.getElementById('color1');
-        const color2Input = document.getElementById('color2');
-        const speedInput = document.getElementById('speed');
-        const densityInput = document.getElementById('density');
         const fontSizeInput = document.getElementById('font-size');
+        const fontWeightInput = document.getElementById('font-weight');
         const lineSpacingInput = document.getElementById('line-spacing');
         const letterSpacingInput = document.getElementById('letter-spacing');
         const shadowBlurInput = document.getElementById('shadow-blur');
         const shadowColorInput = document.getElementById('shadow-color');
+        const bgColorInput = document.getElementById('bg-color');
+        const gradientColorInputs = [
+            document.getElementById('gradient1-color'),
+            document.getElementById('gradient2-color'),
+            document.getElementById('gradient3-color'),
+            document.getElementById('gradient4-color'),
+            document.getElementById('gradient5-color'),
+            document.getElementById('gradient6-color'),
+            document.getElementById('gradient7-color')
+        ];
         
         const saveGifButton = document.getElementById('save-gif');
 
         let frame = 0;
 
         function drawGradient() {
-            const color1 = color1Input.value;
-            const color2 = color2Input.value;
-            const density = parseInt(densityInput.value);
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const bgColor = bgColorInput.value;
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            for (let x = -density; x <= canvas.width + density; x += density) {
-                for (let y = -density; y <= canvas.height + density; y += density) {
-                    const gradient = ctx.createRadialGradient(
-                        x + Math.sin((frame + x) * 0.01) * density,
-                        y + Math.cos((frame + y) * 0.01) * density,
-                        density / 3,
-                        x,
-                        y,
-                        density
-                    );
-                    gradient.addColorStop(0, color1);
-                    gradient.addColorStop(1, color2);
+            const gradientPositions = [
+                {x: 0.4, y: 0.2},
+                {x: 0.8, y: 0},
+                {x: 0, y: 0.5},
+                {x: 0.8, y: 0.5},
+                {x: 0, y: 1},
+                {x: 0.8, y: 1},
+                {x: 0, y: 0}
+            ];
 
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(x, y, density, density);
-                }
-            }
+            gradientColorInputs.forEach((input, index) => {
+                const gradient = ctx.createRadialGradient(
+                    canvas.width * gradientPositions[index].x,
+                    canvas.height * gradientPositions[index].y,
+                    0,
+                    canvas.width * gradientPositions[index].x,
+                    canvas.height * gradientPositions[index].y,
+                    canvas.width * 0.5
+                );
+                gradient.addColorStop(0, input.value);
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            });
 
             if (textInput.value.trim()) {
                 const fontSize = parseInt(fontSizeInput.value);
+                const fontWeight = fontWeightInput.value;
                 const lineSpacing = parseFloat(lineSpacingInput.value);
                 const letterSpacing = parseFloat(letterSpacingInput.value);
                 const shadowBlur = parseInt(shadowBlurInput.value);
                 const shadowColor = shadowColorInput.value;
 
-                ctx.font = `${fontSize}px Arial`;
+                ctx.font = `${fontWeight} ${fontSize}px 'Roboto Flex', sans-serif`;
                 ctx.fillStyle = 'white';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -193,14 +230,13 @@
                     y += fontSize * lineSpacing;
                 });
 
-                // Reset shadow for next frame
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 0;
             }
 
-            frame += parseInt(speedInput.value) / 100;
+            frame++;
         }
 
         function animate() {
@@ -221,20 +257,18 @@
             for (let i = 0; i < 30; i++) {
                 drawGradient();
                 gif.addFrame(ctx, { copy: true, delay: 100 });
-                frame++;
             }
 
             gif.on('finished', (blob) => {
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = 'animated_gradient_text.gif';
+                link.download = 'customized_gradient_text.gif';
                 link.click();
             });
 
             gif.render();
         });
 
-        // Update animation on input change
         const inputs = document.querySelectorAll('input');
         inputs.forEach(input => {
             input.addEventListener('input', drawGradient);
