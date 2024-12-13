@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Gradient Text</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 200px;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        textarea {
+            width: 400px;
+            height: 100px;
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Animated Gradient Text Generator</h1>
+    <textarea id="text-input" placeholder="Paste your text here..."></textarea>
+    <canvas id="gradient-canvas" width="800" height="400"></canvas>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="color1">Gradient Color 1</label>
+            <input type="color" id="color1" value="#ff6b6b">
+        </div>
+        <div class="control-group">
+            <label for="color2">Gradient Color 2</label>
+            <input type="color" id="color2" value="#4ecdc4">
+        </div>
+        <div class="control-group">
+            <label for="speed">Animation Speed</label>
+            <input type="range" id="speed" min="1" max="100" value="50">
+        </div>
+        <div class="control-group">
+            <label for="density">Mesh Density</label>
+            <input type="range" id="density" min="5" max="50" value="20">
+        </div>
+        <div class="control-group">
+            <label for="font-size">Font Size</label>
+            <input type="range" id="font-size" min="12" max="72" value="48">
+        </div>
+        <div class="control-group">
+            <label for="shadow-blur">Shadow Blur</label>
+            <input type="range" id="shadow-blur" min="0" max="20" value="4">
+        </div>
+        <div class="control-group">
+            <label for="shadow-color">Shadow Color</label>
+            <input type="color" id="shadow-color" value="#000000">
+        </div>
+    </div>
+
+    <button id="save-gif">Save as Animated GIF</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+
+    <script>
+        const canvas = document.getElementById('gradient-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const textInput = document.getElementById('text-input');
+        const color1Input = document.getElementById('color1');
+        const color2Input = document.getElementById('color2');
+        const speedInput = document.getElementById('speed');
+        const densityInput = document.getElementById('density');
+        const fontSizeInput = document.getElementById('font-size');
+        const shadowBlurInput = document.getElementById('shadow-blur');
+        const shadowColorInput = document.getElementById('shadow-color');
+        
+        const saveGifButton = document.getElementById('save-gif');
+
+        let frame = 0;
+
+        function drawGradient() {
+            const color1 = color1Input.value;
+            const color2 = color2Input.value;
+            const density = parseInt(densityInput.value);
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let x = -density; x <= canvas.width + density; x += density) {
+                for (let y = -density; y <= canvas.height + density; y += density) {
+                    const gradient = ctx.createRadialGradient(
+                        x + Math.sin((frame + x) * 0.01) * density,
+                        y + Math.cos((frame + y) * 0.01) * density,
+                        density / 3,
+                        x,
+                        y,
+                        density
+                    );
+                    gradient.addColorStop(0, color1);
+                    gradient.addColorStop(1, color2);
+
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(x, y, density, density);
+                }
+            }
+
+            if (textInput.value.trim()) {
+                const fontSize = fontSizeInput.value;
+                const shadowBlur = shadowBlurInput.value;
+                const shadowColor = shadowColorInput.value;
+
+                ctx.font = `${fontSize}px Arial`;
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                ctx.shadowColor = shadowColor;
+                ctx.shadowBlur = shadowBlur;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+
+                ctx.fillText(textInput.value.trim(), canvas.width / 2, canvas.height / 2);
+                
+                // Reset shadow for next frame
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+
+            frame += parseInt(speedInput.value) / 100;
+        }
+
+        function animate() {
+            drawGradient();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        saveGifButton.addEventListener('click', () => {
+            const gif = new GIF({
+                workers: 2,
+                quality: 10,
+                width: canvas.width,
+                height: canvas.height
+            });
+
+            for (let i = 0; i < 30; i++) {
+                drawGradient();
+                gif.addFrame(ctx, { copy: true, delay: 100 });
+                frame++;
+            }
+
+            gif.on('finished', (blob) => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'animated_gradient_text.gif';
+                link.click();
+            });
+
+            gif.render();
+        });
+    </script>
+</body>
+</html>
