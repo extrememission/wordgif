@@ -135,6 +135,11 @@
         </div>
     </div>
 
+    <div class="control-group">
+        <label for="bg-speed">Background Speed</label>
+        <input type="range" id="bg-speed" min="1" max="10" value="5">
+    </div>
+
     <button id="save-gif">Save as Animated GIF</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
@@ -142,7 +147,7 @@
     <script>
         const canvas = document.getElementById('gradient-canvas');
         const ctx = canvas.getContext('2d');
-        
+
         const textInput = document.getElementById('text-input');
         const fontSizeInput = document.getElementById('font-size');
         const fontWeightInput = document.getElementById('font-weight');
@@ -159,24 +164,29 @@
             document.getElementById('gradient6-color'),
             document.getElementById('gradient7-color')
         ];
-        
+
         const saveGifButton = document.getElementById('save-gif');
+        const bgSpeedInput = document.getElementById('bg-speed');
 
         let frame = 0;
+        let bgOffsetX = 0;
 
         function drawGradient() {
             const bgColor = bgColorInput.value;
             ctx.fillStyle = bgColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            const speed = bgSpeedInput.value;
+            bgOffsetX += parseFloat(speed) * 0.05; 
+
             const gradientPositions = [
-                {x: 0.4, y: 0.2},
-                {x: 0.8, y: 0},
-                {x: 0, y: 0.5},
-                {x: 0.8, y: 0.5},
-                {x: 0, y: 1},
-                {x: 0.8, y: 1},
-                {x: 0, y: 0}
+                {x: 0.4 + bgOffsetX, y: 0.2},
+                {x: 0.8 + bgOffsetX, y: 0},
+                {x: 0 + bgOffsetX, y: 0.5},
+                {x: 0.8 + bgOffsetX, y: 0.5},
+                {x: 0 + bgOffsetX, y: 1},
+                {x: 0.8 + bgOffsetX, y: 1},
+                {x: 0 + bgOffsetX, y: 0}
             ];
 
             gradientColorInputs.forEach((input, index) => {
@@ -204,59 +214,25 @@
                 ctx.font = `${fontWeight} ${fontSize}px 'Roboto Flex', sans-serif`;
                 ctx.fillStyle = 'white';
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'top';
-                
-                ctx.shadowColor = shadowColor;
+                ctx.textBaseline = 'middle';
                 ctx.shadowBlur = shadowBlur;
-                ctx.shadowOffsetX = 2;
-                ctx.shadowOffsetY = 2;
+                ctx.shadowColor = shadowColor;
+                const lines = textInput.value.split('\n');
+                const textHeight = fontSize * lineSpacing;
 
-                const maxWidth = canvas.width * 0.8;
-                const lines = getLines(ctx, textInput.value, maxWidth);
-                const totalHeight = lines.length * fontSize * lineSpacing;
-                let y = (canvas.height - totalHeight) / 2;
-
-                lines.forEach(line => {
-                    ctx.fillText(line, canvas.width / 2, y);
-                    y += fontSize * lineSpacing;
+                lines.forEach((line, index) => {
+                    ctx.fillText(line, canvas.width / 2, (canvas.height / 2) - (lines.length / 2 * textHeight) + (index * textHeight));
                 });
-
-                ctx.shadowColor = 'transparent';
-                ctx.shadowBlur = 0;
-                ctx.shadowOffsetX = 0;
-                ctx.shadowOffsetY = 0;
             }
-
-            frame++;
         }
 
-        function getLines(ctx, text, maxWidth) {
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = words[0];
-
-            for (let i = 1; i < words.length; i++) {
-                const word = words[i];
-                const width = ctx.measureText(currentLine + " " + word).width;
-                if (width < maxWidth) {
-                    currentLine += " " + word;
-                } else {
-                    lines.push(currentLine);
-                    currentLine = word;
-                }
-            }
-            lines.push(currentLine);
-            return lines;
-        }
-
-        function animate() {
+        function animateCanvas() {
             drawGradient();
-            requestAnimationFrame(animate);
+            frame++;
+            requestAnimationFrame(animateCanvas);
         }
 
-        animate();
-
-        saveGifButton.addEventListener('click', () => {
+        function createGif() {
             const gif = new GIF({
                 workers: 2,
                 quality: 10,
@@ -264,27 +240,26 @@
                 height: canvas.height
             });
 
-            for (let i = 0; i < 30; i++) {
+            for (let i = 0; i < 50; i++) {
+                bgOffsetX = i * 0.05; // Adjust background shift for each frame
                 drawGradient();
-                gif.addFrame(ctx, { copy: true, delay: 100 });
+                gif.addFrame(canvas, {delay: 100});
             }
 
-            gif.on('finished', (blob) => {
+            gif.on('finished', function(blob) {
+                const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'customized_gradient_text.gif';
+                link.href = url;
+                link.download = 'gradient-text.gif';
                 link.click();
             });
 
             gif.render();
-        });
+        }
 
-        const inputs = document.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('input', drawGradient);
-        });
+        saveGifButton.addEventListener('click', createGif);
 
-        textInput.addEventListener('input', drawGradient);
+        animateCanvas();
     </script>
 </body>
 </html>
