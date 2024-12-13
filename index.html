@@ -74,7 +74,7 @@
 </head>
 <body>
     <h1>Customizable Gradient Text Generator</h1>
-    <textarea id="text-input" placeholder="Paste your text here...">This is a sample centered text. It will be rendered on the customizable gradient background.</textarea>
+    <textarea id="text-input" placeholder="Paste your text here...">This is a sample paragraph text. It will be rendered on the customizable gradient background. You can adjust various parameters to customize the appearance.</textarea>
     <canvas id="gradient-canvas" width="800" height="400"></canvas>
 
     <div class="controls">
@@ -89,10 +89,6 @@
         <div class="control-group">
             <label for="line-spacing">Line Spacing</label>
             <input type="range" id="line-spacing" min="1" max="3" step="0.1" value="1.5">
-        </div>
-        <div class="control-group">
-            <label for="letter-spacing">Letter Spacing</label>
-            <input type="range" id="letter-spacing" min="0" max="10" step="0.1" value="0">
         </div>
         <div class="control-group">
             <label for="shadow-blur">Shadow Blur</label>
@@ -151,7 +147,6 @@
         const fontSizeInput = document.getElementById('font-size');
         const fontWeightInput = document.getElementById('font-weight');
         const lineSpacingInput = document.getElementById('line-spacing');
-        const letterSpacingInput = document.getElementById('letter-spacing');
         const shadowBlurInput = document.getElementById('shadow-blur');
         const shadowColorInput = document.getElementById('shadow-color');
         const bgColorInput = document.getElementById('bg-color');
@@ -203,30 +198,26 @@
                 const fontSize = parseInt(fontSizeInput.value);
                 const fontWeight = fontWeightInput.value;
                 const lineSpacing = parseFloat(lineSpacingInput.value);
-                const letterSpacing = parseFloat(letterSpacingInput.value);
                 const shadowBlur = parseInt(shadowBlurInput.value);
                 const shadowColor = shadowColorInput.value;
 
                 ctx.font = `${fontWeight} ${fontSize}px 'Roboto Flex', sans-serif`;
                 ctx.fillStyle = 'white';
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                ctx.textBaseline = 'top';
                 
                 ctx.shadowColor = shadowColor;
                 ctx.shadowBlur = shadowBlur;
                 ctx.shadowOffsetX = 2;
                 ctx.shadowOffsetY = 2;
 
-                const lines = textInput.value.split('\n');
+                const maxWidth = canvas.width * 0.8;
+                const lines = getLines(ctx, textInput.value, maxWidth);
                 const totalHeight = lines.length * fontSize * lineSpacing;
-                let y = canvas.height / 2 - totalHeight / 2 + fontSize / 2;
+                let y = (canvas.height - totalHeight) / 2;
 
                 lines.forEach(line => {
-                    let x = canvas.width / 2;
-                    [...line].forEach((char, index) => {
-                        ctx.fillText(char, x, y);
-                        x += ctx.measureText(char).width + letterSpacing;
-                    });
+                    ctx.fillText(line, canvas.width / 2, y);
                     y += fontSize * lineSpacing;
                 });
 
@@ -237,6 +228,25 @@
             }
 
             frame++;
+        }
+
+        function getLines(ctx, text, maxWidth) {
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                const word = words[i];
+                const width = ctx.measureText(currentLine + " " + word).width;
+                if (width < maxWidth) {
+                    currentLine += " " + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+            return lines;
         }
 
         function animate() {
